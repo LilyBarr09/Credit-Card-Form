@@ -1,0 +1,12 @@
+label {
+	height: 70px;
+	display: block;
+}
+
+.input-root {
+	border: 1px solid rgb(162, 159, 159);
+	border-radius: 5px;
+	padding: 10px;
+	line-height: 1.2;
+	width: 480px;
+}
