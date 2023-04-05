@@ -86,24 +86,25 @@ class Form extends React.Component {
     }
   };
 
-  handleBlur = (e) => this.handleValidations(e.target.name, e.target.value);
+  handleBlur = ({ target: { name, value } }) =>
+    this.handleValidations(name, value);
 
-  handleInputData = (e) => {
-    if (e.target.name === "card") {
-      let mask = e.target.value.split(" ").join("");
+  handleInputData = ({ target: { name, value } }) => {
+    if (name === "card") {
+      let mask = value.split(" ").join("");
       if (mask.length) {
         mask = mask.match(new RegExp(".{1,4}", "g")).join(" ");
         this.setState((prevState) => ({
           cardData: {
             ...prevState.cardData,
-            [e.target.name]: mask,
+            [name]: mask,
           },
         }));
       } else {
         this.setState((prevState) => ({
           cardData: {
             ...prevState.cardData,
-            [e.target.name]: "",
+            [name]: "",
           },
         }));
       }
@@ -111,13 +112,42 @@ class Form extends React.Component {
       this.setState((prevState) => ({
         cardData: {
           ...prevState.cardData,
-          [e.target.name]: e.target.value,
+          [name]: value,
         },
       }));
     }
   };
 
+  checkErrorBeforeSave = () => {
+    const { cardData } = this.state;
+    let errorValue = {};
+    let isError = false;
+    Object.keys(cardData).forEach((val) => {
+      if (!cardData[val].length) {
+        errorValue = { ...errorValue, [`${val}Error`]: "Required" };
+        isError = true;
+      }
+    });
+    this.setState({
+      error: errorValue,
+    });
+    return isError;
+  };
+
+  handleAddCard = (e) => {
+    e.preventDefault();
+    const errorCheck = this.checkErrorBeforeSave();
+    if (!errorCheck) {
+      this.setState({
+        cardData: INIT_CARD,
+        cardType: null,
+      });
+    }
+  };
+
   render() {
+    const { cardData, error, cardType, maxLength } = this.state;
+
     const inputData = [
       { label: "Card Number", name: "card", type: "text", error: "cardError" },
       {
@@ -143,25 +173,23 @@ class Form extends React.Component {
     return (
       <div>
         <h1>Add New Card</h1>
-        <form>
+        <form onSubmit={this.handleAddCard}>
           {inputData.length
             ? inputData.map((item) => (
                 <InputBase
                   placeholder={item.label}
                   type={item.type}
-                  value={this.state.cardData && this.state.cardData[item.name]}
+                  value={cardData && cardData[item.name]}
                   onChange={this.handleInputData}
                   autoComplete="off"
-                  maxLength={this.state.maxLength}
+                  maxLength={maxLength}
                   name={item.name}
                   onBlur={this.handleBlur}
-                  error={this.state.error}
-                  cardType={this.state.cardType}
+                  error={error}
+                  cardType={cardType}
                   isCard={item.name === "card"}
                   errorM={
-                    this.state.error &&
-                    this.state.error[item.error] &&
-                    this.state.error[item.error].length > 1
+                    error && error[item.error] && error[item.error].length > 1
                       ? this.state.error[item.error]
                       : null
                   }
